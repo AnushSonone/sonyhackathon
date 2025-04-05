@@ -1,8 +1,10 @@
+from dotenv import load_dotenv
 import requests
 import time
-import json
-from dotenv import load_dotenv
 import os
+
+# server.py file in root dir
+from server import send_detection
 
 # use env for API protection
 load_dotenv()
@@ -26,33 +28,30 @@ def fetch_camera_data():
         return None
     
 def display_detections(data):
-    """Display detections in a digestible format"""
-    print('\n=== New Frame ===')
+    print('\n===New Frame===')
     print(f"Timestamp: {data.get('timestamp')}")
     detections = data.get('detections', [])
-    
     if not detections:
         print('No detections')
         return
-
-    # filter only person class detections
-    person_detections = [det for det in detections if det.get('class_name') == 'person']
-
-    if not person_detections:
-        print('No person detected')
-        return
-
-    for i, det in enumerate(person_detections, 1):
-        class_id = det['class_id']
+    
+    for i, det in enumerate(detections, 1):
         class_name = det['class_name']
-        confidence = round(det['confidence'] * 100, 2)
-        bbox = det['bbox']
-        print(f'[{i}] Class: {class_name}, ID: {class_id}, Confidence: {confidence}%, BBox: {bbox}')
+        if class_name != 'person':
+            continue
+
+        user_type = det.get('user_type', 'unknown')
+
+        detection_data = {
+            'class_name': class_name,
+            'user_type': user_type
+        }
+
+        send_detection(detection_data)
+
+        print(f'[{i}] {class_name} ({user_type})')
     print('====================\n')
-
-    # delay so API doesn't spam
     time.sleep(1)
-
 
 def main():
     print("Starting live camera polling...\n")
