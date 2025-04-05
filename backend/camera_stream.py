@@ -6,7 +6,7 @@ import json
 import os
 import sys
 from dotenv import load_dotenv
-from server import send_detection_to_frontend
+from backend.server import send_detection_to_frontend
 
 # Load environment variables
 load_dotenv()
