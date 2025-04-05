@@ -1,7 +1,9 @@
-const socket = io();
+const socket = io(); // connects to the WebSocket server
+
 const box = document.getElementById("statusBox");
 const message = document.getElementById("message");
 
+// when the backend sends data via WebSocket, handle it
 socket.on("detection", (data) => {
   const { class_name, user_type } = data;
 
