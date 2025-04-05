@@ -5,11 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Queue Monitor</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <style>
+      /* Flexbox Layout for Two Columns */
+      .container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      /* Left side for signage */
+      .left-side {
+        width: 45%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .left-side h2 {
+        text-align: center;
+      }
+
+      .status-box {
+        width: 100%;
+        height: 200px;
+        background-color: red; /* Default to red */
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        font-weight: bold;
+        border-radius: 10px;
+        transition: background-color 0.5s ease;
+      }
+
+      /* Right side for real-time feed */
+      .right-side {
+        width: 45%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .right-side h2 {
+        text-align: center;
+      }
+
+      .real-time-feed {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 10px;
+      }
+
+      /* Button Container */
+      .button-container {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+      }
+
+      .button-container button {
+        width: 48%;
+        padding: 15px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        background-color: #add8e6; /* Light Blue */
+        color: black; /* Text color set to black */
+      }
+
+      .button-container button:hover {
+        background-color: #87cefa; /* Lighter Blue */
+      }
+    </style>
   </head>
   <body>
-    <h1>Smart Dual-Line Entry System</h1>
-    <div class="status-box" id="statusBox">Waiting for data...</div>
-    <p id="message"></p>
+    <h1 style="text-align: center">Smart Dual-Line Entry System</h1>
+
+    <div class="container">
+      <!-- Left Side: Signage Box -->
+      <div class="left-side">
+        <h2>Signage</h2>
+        <div class="status-box" id="statusBox">Waiting for data...</div>
+      </div>
+
+      <!-- Right Side: Real-Time Feed Image -->
+      <div class="right-side">
+        <h2>Real-Time Feed</h2>
+        <img
+          id="realTimeFeed"
+          class="real-time-feed"
+          src="/public/example.jpg"
+          alt="Real-Time Feed"
+        />
+      </div>
+    </div>
+
+    <!-- Button Container -->
+    <div class="button-container">
+      <!-- Alert of Emergency Button -->
+      <button class="alert-button" id="alertButton">Alert of Emergency</button>
+
+      <!-- Record History Button -->
+      <button class="record-button" id="recordButton">Record History</button>
+    </div>
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <script src="/static/script.js"></script>
