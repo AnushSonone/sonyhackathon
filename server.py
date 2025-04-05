@@ -1,16 +1,33 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO
-import os
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
+import asyncio
+import uvicorn
+from typing import List
 
-app = Flask(__name__, static_folder='frontend', template_folder='frontend')
-socketio = SocketIO(app, cors_allowed_origins="*")
+app = FastAPI()
 
-@app.route('/')
-def index():
-    return app.send_static_file('index.html')
+# store active WebSocket connections
+active_connections: List[WebSocket] = []
 
-def send_detection(data):
-    socketio.emit('detection', data)
+# serve the frontend HTML
+@app.get("/")
+async def get():
+    with open("index.html", "r") as f:
+        return HTMLResponse(content=f.read(), status_code=200)
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+# WebSocket endpoint
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    active_connections.append(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()  # receive messages from client if needed
+    except WebSocketDisconnect:
+        active_connections.remove(websocket)
+
+# function to send data to all connected WebSockets
+async def send_detection_to_frontend(detection_data: dict):
+    # send the data to all active WebSocket connections
+    for connection in active_connections:
+        await connection.send_json(detection_data)
