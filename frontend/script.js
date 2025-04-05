@@ -1,4 +1,4 @@
-const socket = io(); // connects to the WebSocket server
+const socket = io("http://127.0.0.1:8000");
 
 const box = document.getElementById("statusBox");
 const message = document.getElementById("message");
