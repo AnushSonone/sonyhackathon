@@ -1,15 +1,14 @@
-from dotenv import load_dotenv
-import requests
-import time
-import os
-import random
 import asyncio
+import random
+import time
+import requests
+import json
+import os
 import sys
+from dotenv import load_dotenv
+from server import send_detection_to_frontend
 
-# Import the FastAPI WebSocket handler
-from server import send_detection_to_frontend  # Ensure this is correctly imported
-
-# Use env for API protection
+# Load environment variables
 load_dotenv()
 DEVICE = os.getenv('DEVICE')
 API_PARAMS = {
@@ -19,19 +18,18 @@ API_PARAMS = {
 }
 API_URL = f'https://0myrzet12k.execute-api.us-east-1.amazonaws.com/prod/devices/{DEVICE}/data'
 
-
 def fetch_camera_data():
-    """Real time data fetch from the camera"""
+    """Fetch real-time data from the camera"""
     try:
         response = requests.get(API_URL, params=API_PARAMS)
-        response.raise_for_status()  # raise bad response errors
+        response.raise_for_status()  # raise error if the response is bad
         return response.json()
     except Exception as e:
         print(f'[Error] Failed to fetch data: {e}')
         return None
 
-
 def display_detections(data):
+    """Display and handle detection data"""
     print('\n===New Frame===')
     print(f"Timestamp: {data.get('timestamp')}")
     detections = data.get('detections', [])
@@ -39,6 +37,7 @@ def display_detections(data):
         print('No detections')
         return
 
+    # process each detection
     for i, det in enumerate(detections, 1):
         class_name = det['class_name']
         if class_name != 'person':
@@ -51,13 +50,12 @@ def display_detections(data):
             'user_type': user_type
         }
 
-        # send detection to frontend via WebSocket
-        asyncio.run(send_detection_to_frontend(detection_data))
+        # send detection data to the frontend via WebSocket (using socket.io)
+        asyncio.create_task(send_detection_to_frontend(detection_data))
 
         print(f'[{i}] {class_name} ({user_type})')
     print('====================\n')
     time.sleep(1)
-
 
 async def generate_fake_data():
     """Simulate a stream of detection data (in case wifi not working)"""
@@ -67,7 +65,7 @@ async def generate_fake_data():
             'detections': [
                 {
                     'class_name': 'person',
-                    'user_type': random.choice(['local', 'tourist', 'unknown'])
+                    'user_type': random.choice(['local', 'tourist'])
                 },
                 {
                     'class_name': random.choice(['car', 'tv', 'bed']),
@@ -76,8 +74,7 @@ async def generate_fake_data():
             ]
         }
         yield fake_data
-        await asyncio.sleep(2)  # simulate delay
-
+        await asyncio.sleep(5)  # simulate delay
 
 def main(test_mode=False):  # default to real version
     if test_mode:
@@ -98,7 +95,6 @@ def main(test_mode=False):  # default to real version
             else:
                 print('No data received, retrying...')
                 time.sleep(5)  # wait before retrying
-
 
 if __name__ == "__main__":
     # check if 'test' argument is passed
