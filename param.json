@@ -1,0 +1,18 @@
+{
+    "commands": [
+        {
+            "command_name": "StartUploadInferenceData",
+            "parameters": {
+                "ModelId": "Preset_MobileDet",
+                "Mode": 1,
+                "UploadMethod": "HTTPStorage",
+                "StorageName": "http://192.168.8.140:8080",
+                "FileFormat": "JPG",
+                "StorageSubDirectoryPath": "/image",
+                "UploadMethodIR": "HTTPStorage",
+                "StorageNameIR": "http://192.168.8.140:8080",
+                "StorageSubDirectoryPathIR": "/meta"
+            }
+        }
+    ]
+}
