@@ -1,16 +1,18 @@
 import requests
 import time
 import json
+from dotenv import load_dotenv
+import os
 
-DEVICE = 'Aid-80070001-0000-2000-9002-000000000a94' # karston's camera
-# API URL:
-API_URL = f'https://0myrzet12k.execute-api.us-east-1.amazonaws.com/prod/devices/{DEVICE}/data'
-# API PARAMS:
+# use env for API protection
+load_dotenv()
+DEVICE = os.getenv('DEVICE')
 API_PARAMS = {
-    'key': '202504ut',
-    'pj': 'kyoro',
-    'isMobileDet': '1',
+    'key': os.getenv('API_KEY'),
+    'pj': os.getenv('API_PJ'),
+    'isMobileDet': os.getenv('API_IS_MOBILE_DET'),
 }
+API_URL = f'https://0myrzet12k.execute-api.us-east-1.amazonaws.com/prod/devices/{DEVICE}/data'
 
 
 def fetch_camera_data():
@@ -25,21 +27,32 @@ def fetch_camera_data():
     
 def display_detections(data):
     """Display detections in a digestible format"""
-    print('\n===New Frame===')
+    print('\n=== New Frame ===')
     print(f"Timestamp: {data.get('timestamp')}")
     detections = data.get('detections', [])
+    
     if not detections:
         print('No detections')
         return
-    
-    for i, det in enumerate(detections, 1):
+
+    # filter only person class detections
+    person_detections = [det for det in detections if det.get('class_name') == 'person']
+
+    if not person_detections:
+        print('No person detected')
+        return
+
+    for i, det in enumerate(person_detections, 1):
         class_id = det['class_id']
+        class_name = det['class_name']
         confidence = round(det['confidence'] * 100, 2)
         bbox = det['bbox']
-        print(f'[{i}] Class ID: {class_id}, Confidence: {confidence}%, BBox: {bbox}')
+        print(f'[{i}] Class: {class_name}, ID: {class_id}, Confidence: {confidence}%, BBox: {bbox}')
     print('====================\n')
+
     # delay so API doesn't spam
     time.sleep(1)
+
 
 def main():
     print("Starting live camera polling...\n")
