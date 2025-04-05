@@ -2,6 +2,9 @@ from dotenv import load_dotenv
 import requests
 import time
 import os
+import random
+import asyncio
+import sys
 
 # server.py file in root dir
 from server import send_detection
@@ -53,15 +56,45 @@ def display_detections(data):
     print('====================\n')
     time.sleep(1)
 
-def main():
-    print("Starting live camera polling...\n")
+async def generate_fake_data():
+    """Simulate a stream of detection data (in case wifi not working)"""
     while True:
-        data = fetch_camera_data()
-        if data:
-            display_detections(data)
-        else:
-            print('No data received, retrying...')
-            time.sleep(5)  # wait before retrying
+        fake_data = {
+            'timestamp': time.time(),
+            'detections': [
+                {
+                    'class_name': 'person',
+                    'user_type': random.choice(['local', 'guest', 'unknown'])
+                },
+                {
+                    'class_name': random.choice(['car', 'tv', 'bed']),
+                    'user_type': 'unknown'
+                }
+            ]
+        }
+        yield fake_data
+        await asyncio.sleep(2)  # simulate delay
+
+def main(test_mode=False): # default to real version
+    if test_mode:
+        print("Starting in TEST mode (Fake Data)...\n")
+        loop = asyncio.get_event_loop()
+        async def run_fake():
+            async for fake_data in generate_fake_data():
+                display_detections(fake_data)
+        loop.run_until_complete(run_fake())
+    else:
+        print("Starting live camera polling...\n")
+        while True:
+            data = fetch_camera_data()
+            if data:
+                display_detections(data)
+            else:
+                print('No data received, retrying...')
+                time.sleep(5)  # wait before retrying
+
 
 if __name__ == "__main__":
-    main()
+    # check if 'test' argument is passed
+    test_mode = len(sys.argv) > 1 and sys.argv[1].lower() == "test"
+    main(test_mode)
