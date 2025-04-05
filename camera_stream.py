@@ -67,7 +67,7 @@ async def generate_fake_data():
             'detections': [
                 {
                     'class_name': 'person',
-                    'user_type': random.choice(['local', 'guest', 'unknown'])
+                    'user_type': random.choice(['local', 'tourist', 'unknown'])
                 },
                 {
                     'class_name': random.choice(['car', 'tv', 'bed']),
