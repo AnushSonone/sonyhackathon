@@ -1,33 +1,26 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-import asyncio
-import uvicorn
-from typing import List
+from fastapi import Request
 
+# fastAPI setup
 app = FastAPI()
 
-# store active WebSocket connections
-active_connections: List[WebSocket] = []
+# serve static files (JavaScript, CSS, etc.)
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
-# serve the frontend HTML
-@app.get("/")
-async def get():
-    with open("index.html", "r") as f:
-        return HTMLResponse(content=f.read(), status_code=200)
+# template setup (for rendering HTML files from my frontend dir)
+templates = Jinja2Templates(directory="frontend")
 
-# WebSocket endpoint
+@app.get("/", response_class=HTMLResponse)
+async def get_home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+# sebSocket setup (optional, if needed for real-time communication)
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket):
     await websocket.accept()
-    active_connections.append(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()  # receive messages from client if needed
-    except WebSocketDisconnect:
-        active_connections.remove(websocket)
-
-# function to send data to all connected WebSockets
-async def send_detection_to_frontend(detection_data: dict):
-    # send the data to all active WebSocket connections
-    for connection in active_connections:
-        await connection.send_json(detection_data)
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Message received: {data}")
